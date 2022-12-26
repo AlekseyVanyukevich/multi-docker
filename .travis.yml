@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t alexeyv1/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true alexeyv1/react-test npm test
+
+after_success:
+  - docker build -t alexeyv1/mulit-client ./client
+  - docker build -t alexeyv1/mulit-nginx ./nginx
+  - docker build -t alexeyv1/mulit-server ./server
+  - docker build -t alexeyv1/mulit-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push alexeyv1/mulit-client
+  - docker push alexeyv1/mulit-nginx
+  - docker push alexeyv1/mulit-server
+  - docker push alexeyv1/mulit-worker
